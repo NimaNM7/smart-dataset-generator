@@ -1,5 +1,10 @@
 package it.datagen.prototype.model.rules;
 
+import it.datagen.prototype.engine.validation.RuleValidationVisitor;
+import it.datagen.prototype.model.Row;
+
+import java.util.List;
+
 /**
  * Represents an intra-table reference rule (Rule #4), defining a parent-child
  * relationship. Example: In an employee table, a "Manager_ID" column refers to
@@ -34,5 +39,10 @@ public class IntraTableParentRule implements DataQualityRule {
 
 	public String getParentIdColumn() {
 		return parentIdColumn;
+	}
+
+	@Override
+	public boolean accept(RuleValidationVisitor visitor, Row row, List<Row> allRows) {
+		return visitor.visit(this, row, allRows);
 	}
 }

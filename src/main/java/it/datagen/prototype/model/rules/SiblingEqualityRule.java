@@ -1,5 +1,9 @@
 package it.datagen.prototype.model.rules;
 
+import it.datagen.prototype.engine.validation.RuleValidationVisitor;
+import it.datagen.prototype.model.Row;
+
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -47,5 +51,10 @@ public class SiblingEqualityRule implements DataQualityRule {
 
 	public String getTargetColumn() {
 		return targetColumn;
+	}
+
+	@Override
+	public boolean accept(RuleValidationVisitor visitor, Row row, List<Row> allRows) {
+		return visitor.visit(this, row, allRows);
 	}
 }
