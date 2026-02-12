@@ -1,6 +1,16 @@
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/DataGenerator.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/DependencyGraphVisitor.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/DependencySolver.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/RuleHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/RuleProcessingContext.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/RuleProcessorRegistry.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/handlers/ColumnComparisonRuleHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/handlers/ConditionalCompletenessRuleHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/handlers/FunctionalDependencyRuleHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/handlers/LengthComparisonRuleHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/handlers/RuleValueUtils.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/handlers/TemporalOrderRuleHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/handlers/UniqueKeyRuleHandler.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/Column.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/Row.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/TableSchema.java

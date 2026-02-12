@@ -1,10 +1,7 @@
 package it.datagen.prototype.model.rules;
 
 import it.datagen.prototype.engine.dependencies.DependencyGraphVisitor;
-import it.datagen.prototype.engine.validation.RuleValidationVisitor;
-import it.datagen.prototype.model.Row;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -63,10 +60,5 @@ public class ColumnComparisonRule implements DataQualityRule, DependencyAwareRul
 	@Override
 	public void accept(DependencyGraphVisitor visitor) {
 		visitor.visit(this);
-	}
-
-	@Override
-	public boolean accept(RuleValidationVisitor visitor, Row row, List<Row> allRows) {
-		return visitor.visit(this, row, allRows);
 	}
 }
