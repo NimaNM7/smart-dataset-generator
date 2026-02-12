@@ -78,4 +78,48 @@ final class RuleValueUtils {
 		}
 		return null;
 	}
+
+	static Object decrementStrictly(Object value) {
+		if (value instanceof Integer) {
+			return ((Integer) value) - 1;
+		}
+		if (value instanceof Long) {
+			return ((Long) value) - 1L;
+		}
+		if (value instanceof Short) {
+			return (short) (((Short) value) - 1);
+		}
+		if (value instanceof Byte) {
+			return (byte) (((Byte) value) - 1);
+		}
+		if (value instanceof Double) {
+			return ((Double) value) - 1.0d;
+		}
+		if (value instanceof Float) {
+			return ((Float) value) - 1.0f;
+		}
+		if (value instanceof BigDecimal) {
+			return ((BigDecimal) value).subtract(BigDecimal.ONE);
+		}
+		if (value instanceof BigInteger) {
+			return ((BigInteger) value).subtract(BigInteger.ONE);
+		}
+		if (value instanceof Date) {
+			return new Date(((Date) value).getTime() - 1L);
+		}
+		if (value instanceof LocalDate) {
+			return ((LocalDate) value).minusDays(1);
+		}
+		if (value instanceof LocalDateTime) {
+			return ((LocalDateTime) value).minusNanos(1);
+		}
+		if (value instanceof Instant) {
+			return ((Instant) value).minusMillis(1);
+		}
+		if (value instanceof String) {
+			String text = (String) value;
+			return text.isEmpty() ? null : text.substring(0, text.length() - 1);
+		}
+		return null;
+	}
 }

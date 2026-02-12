@@ -10,10 +10,12 @@ import it.datagen.prototype.model.rules.DataQualityRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Dispatches rules to typed handlers.
@@ -56,16 +58,26 @@ public class RuleProcessorRegistry {
 	}
 
 	public boolean fix(DataQualityRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		return fix(rule, row == null ? null : row.getValues(), toValueViews(allRows), context);
+		return fix(rule, row, allRows, context, Collections.emptySet());
+	}
+
+	public boolean fix(DataQualityRule rule, Row row, List<Row> allRows, RuleProcessingContext context,
+			Set<String> fixedColumns) {
+		return fix(rule, row == null ? null : row.getValues(), toValueViews(allRows), context, fixedColumns);
 	}
 
 	public boolean fix(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRowValues,
 			RuleProcessingContext context) {
+		return fix(rule, rowValues, allRowValues, context, Collections.emptySet());
+	}
+
+	public boolean fix(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRowValues,
+			RuleProcessingContext context, Set<String> fixedColumns) {
 		RuleHandler<DataQualityRule> handler = resolveHandler(rule);
 		if (handler == null) {
 			return false;
 		}
-		return handler.fixValues(rule, rowValues, allRowValues, context);
+		return handler.fixValues(rule, rowValues, allRowValues, context, fixedColumns);
 	}
 
 	@SuppressWarnings("unchecked")

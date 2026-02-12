@@ -9,9 +9,11 @@ import it.datagen.prototype.model.TableSchema;
 import it.datagen.prototype.model.rules.DataQualityRule;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Facade for rule-oriented dataset generation operations.
@@ -44,12 +46,22 @@ public class DatasetGenerator {
 	}
 
 	public boolean fixRule(DataQualityRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		return ruleProcessors.fix(rule, row, allRows, context);
+		return fixRule(rule, row, allRows, context, Collections.emptySet());
+	}
+
+	public boolean fixRule(DataQualityRule rule, Row row, List<Row> allRows, RuleProcessingContext context,
+			Set<String> fixedColumns) {
+		return ruleProcessors.fix(rule, row, allRows, context, fixedColumns);
 	}
 
 	public boolean fixRule(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRows,
 			RuleProcessingContext context) {
-		return ruleProcessors.fix(rule, rowValues, allRows, context);
+		return fixRule(rule, rowValues, allRows, context, Collections.emptySet());
+	}
+
+	public boolean fixRule(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRows,
+			RuleProcessingContext context, Set<String> fixedColumns) {
+		return ruleProcessors.fix(rule, rowValues, allRows, context, fixedColumns);
 	}
 
 	public List<Row> generateTable(TableSchema tableSchema, List<DataQualityRule> rules) {

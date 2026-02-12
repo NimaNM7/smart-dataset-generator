@@ -6,6 +6,7 @@ import it.datagen.prototype.model.rules.ColumnComparisonRule;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparisonRule> {
 
@@ -34,7 +35,7 @@ public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparison
 
 	@Override
 	public boolean fixValues(ColumnComparisonRule rule, Map<String, Object> rowValues,
-			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context, Set<String> fixedColumns) {
 		if (rule == null || rowValues == null) {
 			return false;
 		}
@@ -46,17 +47,35 @@ public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparison
 			return false;
 		}
 
-		if (rule.isAllowEqual()) {
-			rowValues.put(rule.getLargerColumn(), smallerValue);
+		boolean smallerFixed = fixedColumns.contains(rule.getSmallerColumn());
+		boolean largerFixed = fixedColumns.contains(rule.getLargerColumn());
+
+		if (!largerFixed) {
+			if (rule.isAllowEqual()) {
+				rowValues.put(rule.getLargerColumn(), smallerValue);
+				return true;
+			}
+			Object nextValue = incrementStrictly(smallerValue);
+			if (nextValue == null) {
+				return false;
+			}
+			rowValues.put(rule.getLargerColumn(), nextValue);
 			return true;
 		}
 
-		Object nextValue = incrementStrictly(smallerValue);
-		if (nextValue == null) {
+		if (smallerFixed) {
 			return false;
 		}
 
-		rowValues.put(rule.getLargerColumn(), nextValue);
+		if (rule.isAllowEqual()) {
+			rowValues.put(rule.getSmallerColumn(), largerValue);
+			return true;
+		}
+		Object previousValue = decrementStrictly(largerValue);
+		if (previousValue == null) {
+			return false;
+		}
+		rowValues.put(rule.getSmallerColumn(), previousValue);
 		return true;
 	}
 
@@ -66,5 +85,9 @@ public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparison
 
 	private Object incrementStrictly(Object value) {
 		return RuleValueUtils.incrementStrictly(value);
+	}
+
+	private Object decrementStrictly(Object value) {
+		return RuleValueUtils.decrementStrictly(value);
 	}
 }

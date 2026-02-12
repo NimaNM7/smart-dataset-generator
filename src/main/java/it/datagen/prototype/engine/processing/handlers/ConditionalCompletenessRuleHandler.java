@@ -7,6 +7,7 @@ import it.datagen.prototype.model.rules.ConditionalCompletenessRule;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class ConditionalCompletenessRuleHandler implements RuleHandler<ConditionalCompletenessRule> {
 
@@ -35,7 +36,7 @@ public class ConditionalCompletenessRuleHandler implements RuleHandler<Condition
 
 	@Override
 	public boolean fixValues(ConditionalCompletenessRule rule, Map<String, Object> rowValues,
-			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context, Set<String> fixedColumns) {
 		if (rule == null || rowValues == null) {
 			return false;
 		}
@@ -43,6 +44,10 @@ public class ConditionalCompletenessRuleHandler implements RuleHandler<Condition
 		Object conditionValue = rowValues.get(rule.getConditionColumn());
 		if (!Objects.equals(conditionValue, rule.getConditionValue())) {
 			return true;
+		}
+
+		if (fixedColumns.contains(rule.getTargetColumn())) {
+			return false;
 		}
 
 		if (rule.isTargetMustBeNull()) {

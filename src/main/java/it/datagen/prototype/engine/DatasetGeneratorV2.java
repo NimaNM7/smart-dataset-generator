@@ -85,6 +85,7 @@ public class DatasetGeneratorV2 {
 		for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
 			Map<String, Object> currentRowValues = new HashMap<>();
 			Set<String> availableColumns = new LinkedHashSet<>();
+			Set<String> fixedColumns = new LinkedHashSet<>();
 			Set<DataQualityRule> rulesToCheck = new LinkedHashSet<>();
 
 			for (Set<String> stageColumns : generationStages) {
@@ -92,15 +93,16 @@ public class DatasetGeneratorV2 {
 				availableColumns.addAll(stageColumns);
 				rulesToCheck.addAll(rulesToCheckForColumns(stageColumns, rulesByColumn));
 				boolean foundStableRowValues = applyRulesUntilStable(
-						rulesToCheck, currentRowValues, tableRowValues, context, availableColumns
+						rulesToCheck, currentRowValues, tableRowValues, context, availableColumns, fixedColumns
 				);
 				if (!foundStableRowValues) {
 					throw new IllegalStateException("Unable to satisfy stage rules for row index " + rowIndex);
 				}
+				fixedColumns.addAll(stageColumns);
 			}
 
 			boolean foundStableRowValues = applyRulesUntilStable(
-					rulesToCheck, currentRowValues, tableRowValues, context, availableColumns
+					rulesToCheck, currentRowValues, tableRowValues, context, availableColumns, fixedColumns
 			);
 			if (!foundStableRowValues) {
 				throw new IllegalStateException("Unable to satisfy row rules for row index " + rowIndex);
@@ -209,10 +211,12 @@ public class DatasetGeneratorV2 {
 	 * @param tableRowValues already generated rows
 	 * @param context processing context
 	 * @param availableColumns currently generated columns
+	 * @param fixedColumns columns from previous stages that fix methods must not modify
 	 * @return check result with success flag and remaining rules to check
 	 */
 	private boolean applyRulesUntilStable(Set<DataQualityRule> rulesToCheck, Map<String, Object> currentRowValues,
-			List<Map<String, Object>> tableRowValues, RuleProcessingContext context, Set<String> availableColumns) {
+			List<Map<String, Object>> tableRowValues, RuleProcessingContext context, Set<String> availableColumns,
+			Set<String> fixedColumns) {
 
 		// some rules must be checked later, because they check columns that we don't have now.
 		Set<DataQualityRule> currentRulesToCheck = rulesToCheck.stream().filter(rule ->
@@ -232,7 +236,7 @@ public class DatasetGeneratorV2 {
 					continue;
 				}
 
-				boolean fixed = ruleProcessors.fix(rule, currentRowValues, tableRowValues, context);
+				boolean fixed = ruleProcessors.fix(rule, currentRowValues, tableRowValues, context, fixedColumns);
 				if (!fixed) {
 					return false;
 				}
@@ -275,8 +279,5 @@ public class DatasetGeneratorV2 {
 		if (!unknownColumns.isEmpty()) {
 			throw new IllegalArgumentException("Rules reference columns that do not exist in schema: " + unknownColumns);
 		}
-	}
-
-	private record RuleCheckResult(boolean success, Set<DataQualityRule> remainingRulesToCheck) {
 	}
 }

@@ -6,6 +6,7 @@ import it.datagen.prototype.model.rules.TemporalOrderRule;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> {
 
@@ -34,7 +35,7 @@ public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> 
 
 	@Override
 	public boolean fixValues(TemporalOrderRule rule, Map<String, Object> rowValues,
-			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context, Set<String> fixedColumns) {
 		if (rule == null || rowValues == null) {
 			return false;
 		}
@@ -46,17 +47,37 @@ public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> 
 			return false;
 		}
 
-		if (rule.isAllowEqual()) {
-			rowValues.put(rule.getLaterDateColumn(), earlierValue);
+		boolean earlierFixed = fixedColumns.contains(rule.getEarlierDateColumn());
+		boolean laterFixed = fixedColumns.contains(rule.getLaterDateColumn());
+
+		if (!laterFixed) {
+			if (rule.isAllowEqual()) {
+				rowValues.put(rule.getLaterDateColumn(), earlierValue);
+				return true;
+			}
+			Object adjustedLater = RuleValueUtils.incrementStrictly(earlierValue);
+			if (adjustedLater == null) {
+				return false;
+			}
+			rowValues.put(rule.getLaterDateColumn(), adjustedLater);
 			return true;
 		}
 
-		Object adjustedLater = RuleValueUtils.incrementStrictly(earlierValue);
-		if (adjustedLater == null) {
+		if (earlierFixed) {
 			return false;
 		}
 
-		rowValues.put(rule.getLaterDateColumn(), adjustedLater);
+		if (rule.isAllowEqual()) {
+			rowValues.put(rule.getEarlierDateColumn(), laterValue);
+			return true;
+		}
+
+		Object adjustedEarlier = RuleValueUtils.decrementStrictly(laterValue);
+		if (adjustedEarlier == null) {
+			return false;
+		}
+
+		rowValues.put(rule.getEarlierDateColumn(), adjustedEarlier);
 		return true;
 	}
 }

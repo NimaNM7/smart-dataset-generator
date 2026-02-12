@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDependencyRule> {
 
@@ -44,8 +45,11 @@ public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDe
 
 	@Override
 	public boolean fixValues(FunctionalDependencyRule rule, Map<String, Object> rowValues,
-			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context, Set<String> fixedColumns) {
 		if (rule == null || rowValues == null || allRowValues == null) {
+			return false;
+		}
+		if (fixedColumns.contains(rule.getDependentColumn())) {
 			return false;
 		}
 
