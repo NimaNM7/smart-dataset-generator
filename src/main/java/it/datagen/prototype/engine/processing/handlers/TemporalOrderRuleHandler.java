@@ -2,10 +2,10 @@ package it.datagen.prototype.engine.processing.handlers;
 
 import it.datagen.prototype.engine.processing.RuleHandler;
 import it.datagen.prototype.engine.processing.RuleProcessingContext;
-import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.rules.TemporalOrderRule;
 
 import java.util.List;
+import java.util.Map;
 
 public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> {
 
@@ -15,14 +15,15 @@ public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> 
 	}
 
 	@Override
-	public boolean validate(TemporalOrderRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (rule == null || row == null) {
+	public boolean validateValues(TemporalOrderRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
 
 		Integer comparison = RuleValueUtils.compareValues(
-				row.getValue(rule.getEarlierDateColumn()),
-				row.getValue(rule.getLaterDateColumn())
+				rowValues.get(rule.getEarlierDateColumn()),
+				rowValues.get(rule.getLaterDateColumn())
 		);
 		if (comparison == null) {
 			return false;
@@ -32,23 +33,24 @@ public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> 
 	}
 
 	@Override
-	public boolean fix(TemporalOrderRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (validate(rule, row, allRows, context)) {
+	public boolean fixValues(TemporalOrderRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (validateValues(rule, rowValues, allRowValues, context)) {
 			return true;
 		}
-		if (rule == null || row == null) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
 
-		Object earlierValue = row.getValue(rule.getEarlierDateColumn());
-		Object laterValue = row.getValue(rule.getLaterDateColumn());
+		Object earlierValue = rowValues.get(rule.getEarlierDateColumn());
+		Object laterValue = rowValues.get(rule.getLaterDateColumn());
 		Integer comparison = RuleValueUtils.compareValues(earlierValue, laterValue);
 		if (comparison == null) {
 			return false;
 		}
 
 		if (rule.isAllowEqual()) {
-			row.setValue(rule.getLaterDateColumn(), earlierValue);
+			rowValues.put(rule.getLaterDateColumn(), earlierValue);
 			return true;
 		}
 
@@ -57,7 +59,7 @@ public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> 
 			return false;
 		}
 
-		row.setValue(rule.getLaterDateColumn(), adjustedLater);
+		rowValues.put(rule.getLaterDateColumn(), adjustedLater);
 		return true;
 	}
 }

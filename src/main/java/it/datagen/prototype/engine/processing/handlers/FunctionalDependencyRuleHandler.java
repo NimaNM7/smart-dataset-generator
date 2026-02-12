@@ -2,11 +2,11 @@ package it.datagen.prototype.engine.processing.handlers;
 
 import it.datagen.prototype.engine.processing.RuleHandler;
 import it.datagen.prototype.engine.processing.RuleProcessingContext;
-import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.rules.FunctionalDependencyRule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDependencyRule> {
@@ -17,22 +17,23 @@ public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDe
 	}
 
 	@Override
-	public boolean validate(FunctionalDependencyRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (rule == null || row == null || allRows == null) {
+	public boolean validateValues(FunctionalDependencyRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (rule == null || rowValues == null || allRowValues == null) {
 			return false;
 		}
 
-		Object dependentValue = row.getValue(rule.getDependentColumn());
-		for (Row candidate : allRows) {
-			if (candidate == null || candidate == row) {
+		Object dependentValue = rowValues.get(rule.getDependentColumn());
+		for (Map<String, Object> candidate : allRowValues) {
+			if (candidate == null || candidate == rowValues) {
 				continue;
 			}
 
-			if (!sameDeterminants(row, candidate, rule.getDeterminantColumns())) {
+			if (!sameDeterminants(rowValues, candidate, rule.getDeterminantColumns())) {
 				continue;
 			}
 
-			Object candidateDependentValue = candidate.getValue(rule.getDependentColumn());
+			Object candidateDependentValue = candidate.get(rule.getDependentColumn());
 			if (!Objects.equals(dependentValue, candidateDependentValue)) {
 				return false;
 			}
@@ -42,33 +43,34 @@ public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDe
 	}
 
 	@Override
-	public boolean fix(FunctionalDependencyRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (validate(rule, row, allRows, context)) {
+	public boolean fixValues(FunctionalDependencyRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (validateValues(rule, rowValues, allRowValues, context)) {
 			return true;
 		}
-		if (rule == null || row == null || allRows == null) {
+		if (rule == null || rowValues == null || allRowValues == null) {
 			return false;
 		}
 
-		List<Row> equivalenceClass = new ArrayList<>();
-		equivalenceClass.add(row);
-		for (Row candidate : allRows) {
-			if (candidate == null || candidate == row) {
+		List<Map<String, Object>> equivalenceClass = new ArrayList<>();
+		equivalenceClass.add(rowValues);
+		for (Map<String, Object> candidate : allRowValues) {
+			if (candidate == null || candidate == rowValues) {
 				continue;
 			}
-			if (sameDeterminants(row, candidate, rule.getDeterminantColumns())) {
+			if (sameDeterminants(rowValues, candidate, rule.getDeterminantColumns())) {
 				equivalenceClass.add(candidate);
 			}
 		}
 
 		Object canonicalValue = selectCanonicalDependentValue(rule, equivalenceClass);
-		row.setValue(rule.getDependentColumn(), canonicalValue);
+		rowValues.put(rule.getDependentColumn(), canonicalValue);
 		return true;
 	}
 
-	private Object selectCanonicalDependentValue(FunctionalDependencyRule rule, List<Row> rows) {
-		for (Row candidate : rows) {
-			Object value = candidate.getValue(rule.getDependentColumn());
+	private Object selectCanonicalDependentValue(FunctionalDependencyRule rule, List<Map<String, Object>> rows) {
+		for (Map<String, Object> candidate : rows) {
+			Object value = candidate.get(rule.getDependentColumn());
 			if (value != null) {
 				return value;
 			}
@@ -76,10 +78,11 @@ public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDe
 		return null;
 	}
 
-	private boolean sameDeterminants(Row first, Row second, List<String> determinantColumns) {
+	private boolean sameDeterminants(Map<String, Object> first, Map<String, Object> second,
+			List<String> determinantColumns) {
 		for (String determinantColumn : determinantColumns) {
-			Object leftValue = first.getValue(determinantColumn);
-			Object rightValue = second.getValue(determinantColumn);
+			Object leftValue = first.get(determinantColumn);
+			Object rightValue = second.get(determinantColumn);
 			if (!Objects.equals(leftValue, rightValue)) {
 				return false;
 			}

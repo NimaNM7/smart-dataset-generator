@@ -5,10 +5,10 @@ import it.datagen.prototype.engine.processing.handlers.ConditionalCompletenessRu
 import it.datagen.prototype.engine.processing.handlers.FunctionalDependencyRuleHandler;
 import it.datagen.prototype.engine.processing.handlers.LengthComparisonRuleHandler;
 import it.datagen.prototype.engine.processing.handlers.TemporalOrderRuleHandler;
-import it.datagen.prototype.engine.processing.handlers.UniqueKeyRuleHandler;
 import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.rules.DataQualityRule;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,7 +34,6 @@ public class RuleProcessorRegistry {
 
 	public static RuleProcessorRegistry withDefaults() {
 		return new RuleProcessorRegistry(Arrays.asList(
-				new UniqueKeyRuleHandler(),
 				new ColumnComparisonRuleHandler(),
 				new TemporalOrderRuleHandler(),
 				new LengthComparisonRuleHandler(),
@@ -44,19 +43,29 @@ public class RuleProcessorRegistry {
 	}
 
 	public boolean validate(DataQualityRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
+		return validate(rule, row == null ? null : row.getValues(), toValueViews(allRows), context);
+	}
+
+	public boolean validate(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRowValues,
+			RuleProcessingContext context) {
 		RuleHandler<DataQualityRule> handler = resolveHandler(rule);
 		if (handler == null) {
 			return true;
 		}
-		return handler.validate(rule, row, allRows, context);
+		return handler.validateValues(rule, rowValues, allRowValues, context);
 	}
 
 	public boolean fix(DataQualityRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
+		return fix(rule, row == null ? null : row.getValues(), toValueViews(allRows), context);
+	}
+
+	public boolean fix(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRowValues,
+			RuleProcessingContext context) {
 		RuleHandler<DataQualityRule> handler = resolveHandler(rule);
 		if (handler == null) {
 			return false;
-		} 
-		return handler.fix(rule, row, allRows, context);
+		}
+		return handler.fixValues(rule, rowValues, allRowValues, context);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -65,5 +74,16 @@ public class RuleProcessorRegistry {
 			return null;
 		}
 		return (RuleHandler<DataQualityRule>) handlersByRuleType.get(rule.getClass());
+	}
+
+	private List<Map<String, Object>> toValueViews(List<Row> rows) {
+		if (rows == null) {
+			return null;
+		}
+		List<Map<String, Object>> valueViews = new ArrayList<>(rows.size());
+		for (Row row : rows) {
+			valueViews.add(row == null ? null : row.getValues());
+		}
+		return valueViews;
 	}
 }

@@ -2,10 +2,10 @@ package it.datagen.prototype.engine.processing.handlers;
 
 import it.datagen.prototype.engine.processing.RuleHandler;
 import it.datagen.prototype.engine.processing.RuleProcessingContext;
-import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.rules.LengthComparisonRule;
 
 import java.util.List;
+import java.util.Map;
 
 public class LengthComparisonRuleHandler implements RuleHandler<LengthComparisonRule> {
 
@@ -15,13 +15,14 @@ public class LengthComparisonRuleHandler implements RuleHandler<LengthComparison
 	}
 
 	@Override
-	public boolean validate(LengthComparisonRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (rule == null || row == null) {
+	public boolean validateValues(LengthComparisonRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
 
-		Object firstValue = row.getValue(rule.getFirstColumn());
-		Object secondValue = row.getValue(rule.getSecondColumn());
+		Object firstValue = rowValues.get(rule.getFirstColumn());
+		Object secondValue = rowValues.get(rule.getSecondColumn());
 		if (!(firstValue instanceof CharSequence) || !(secondValue instanceof CharSequence)) {
 			return false;
 		}
@@ -37,21 +38,22 @@ public class LengthComparisonRuleHandler implements RuleHandler<LengthComparison
 	}
 
 	@Override
-	public boolean fix(LengthComparisonRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (validate(rule, row, allRows, context)) {
+	public boolean fixValues(LengthComparisonRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (validateValues(rule, rowValues, allRowValues, context)) {
 			return true;
 		}
-		if (rule == null || row == null) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
 
-		Object firstValue = row.getValue(rule.getFirstColumn());
+		Object firstValue = rowValues.get(rule.getFirstColumn());
 		if (!(firstValue instanceof CharSequence)) {
 			return false;
 		}
 
 		String firstText = firstValue.toString();
-		String secondText = toText(row.getValue(rule.getSecondColumn()));
+		String secondText = toText(rowValues.get(rule.getSecondColumn()));
 
 		String fixedSecond;
 		switch (rule.getComparison()) {
@@ -74,7 +76,7 @@ public class LengthComparisonRuleHandler implements RuleHandler<LengthComparison
 				return false;
 		}
 
-		row.setValue(rule.getSecondColumn(), fixedSecond);
+		rowValues.put(rule.getSecondColumn(), fixedSecond);
 		return true;
 	}
 

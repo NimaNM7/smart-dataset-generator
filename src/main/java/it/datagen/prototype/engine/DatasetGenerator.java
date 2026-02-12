@@ -10,6 +10,7 @@ import it.datagen.prototype.model.rules.DataQualityRule;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -37,8 +38,18 @@ public class DatasetGenerator {
 		return ruleProcessors.validate(rule, row, allRows, context);
 	}
 
+	public boolean validateRule(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRows,
+			RuleProcessingContext context) {
+		return ruleProcessors.validate(rule, rowValues, allRows, context);
+	}
+
 	public boolean fixRule(DataQualityRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
 		return ruleProcessors.fix(rule, row, allRows, context);
+	}
+
+	public boolean fixRule(DataQualityRule rule, Map<String, Object> rowValues, List<Map<String, Object>> allRows,
+			RuleProcessingContext context) {
+		return ruleProcessors.fix(rule, rowValues, allRows, context);
 	}
 
 	public List<Row> generateTable(TableSchema tableSchema, List<DataQualityRule> rules) {

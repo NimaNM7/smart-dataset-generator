@@ -2,6 +2,7 @@ package it.datagen.prototype.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
@@ -39,5 +40,14 @@ public class TableSchema {
 	 */
 	public Column getColumn(String name) {
 		return columnMap.get(name);
+	}
+
+	/**
+	 * Exposes the schema's column map (name -> Column) as a read-only view.
+	 *
+	 * @return unmodifiable column map
+	 */
+	public Map<String, Column> getColumnMap() {
+		return Collections.unmodifiableMap(columnMap);
 	}
 }

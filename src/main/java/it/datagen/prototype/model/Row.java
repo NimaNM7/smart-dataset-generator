@@ -15,6 +15,10 @@ public class Row {
 		this.values = new HashMap<>();
 	}
 
+	public Row(Map<String, Object> values) {
+		this.values = values;
+	}
+
 	/**
 	 * Sets a value for a specific column in this row.
 	 * 
@@ -33,6 +37,15 @@ public class Row {
 	 */
 	public Object getValue(String columnName) {
 		return values.get(columnName);
+	}
+
+	/**
+	 * Exposes the underlying values map. Mutations on this map update the row.
+	 *
+	 * @return the mutable map backing this row
+	 */
+	public Map<String, Object> getValues() {
+		return values;
 	}
 
 	@Override

@@ -2,10 +2,10 @@ package it.datagen.prototype.engine.processing.handlers;
 
 import it.datagen.prototype.engine.processing.RuleHandler;
 import it.datagen.prototype.engine.processing.RuleProcessingContext;
-import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.rules.ColumnComparisonRule;
 
 import java.util.List;
+import java.util.Map;
 
 public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparisonRule> {
 
@@ -15,14 +15,15 @@ public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparison
 	}
 
 	@Override
-	public boolean validate(ColumnComparisonRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (rule == null || row == null) {
+	public boolean validateValues(ColumnComparisonRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
 
 		Integer comparison = compareValues(
-				row.getValue(rule.getSmallerColumn()),
-				row.getValue(rule.getLargerColumn())
+				rowValues.get(rule.getSmallerColumn()),
+				rowValues.get(rule.getLargerColumn())
 		);
 		if (comparison == null) {
 			return false;
@@ -32,20 +33,21 @@ public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparison
 	}
 
 	@Override
-	public boolean fix(ColumnComparisonRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (validate(rule, row, allRows, context)) {
+	public boolean fixValues(ColumnComparisonRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (validateValues(rule, rowValues, allRowValues, context)) {
 			return true;
 		}
 
-		Object smallerValue = row.getValue(rule.getSmallerColumn());
-		Object largerValue = row.getValue(rule.getLargerColumn());
+		Object smallerValue = rowValues.get(rule.getSmallerColumn());
+		Object largerValue = rowValues.get(rule.getLargerColumn());
 		Integer comparison = compareValues(smallerValue, largerValue);
 		if (comparison == null) {
 			return false;
 		}
 
 		if (rule.isAllowEqual()) {
-			row.setValue(rule.getLargerColumn(), smallerValue);
+			rowValues.put(rule.getLargerColumn(), smallerValue);
 			return true;
 		}
 
@@ -54,7 +56,7 @@ public class ColumnComparisonRuleHandler implements RuleHandler<ColumnComparison
 			return false;
 		}
 
-		row.setValue(rule.getLargerColumn(), nextValue);
+		rowValues.put(rule.getLargerColumn(), nextValue);
 		return true;
 	}
 

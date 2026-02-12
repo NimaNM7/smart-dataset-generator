@@ -1,5 +1,4 @@
 it/datagen/prototype/engine/processing/handlers/FunctionalDependencyRuleHandler.class
-it/datagen/prototype/engine/processing/handlers/UniqueKeyRuleHandler.class
 it/datagen/prototype/engine/generation/TypeValueGenerator.class
 it/datagen/prototype/engine/processing/handlers/ConditionalCompletenessRuleHandler.class
 it/datagen/prototype/engine/dependencies/DependencyProcessorRegistry.class
@@ -20,3 +19,4 @@ it/datagen/prototype/engine/dependencies/handlers/LengthComparisonDependencyHand
 it/datagen/prototype/engine/dependencies/DependencyRuleHandler.class
 it/datagen/prototype/engine/dependencies/handlers/TemporalOrderDependencyHandler.class
 it/datagen/prototype/engine/dependencies/handlers/ConditionalCompletenessDependencyHandler.class
+it/datagen/prototype/engine/DatasetGeneratorV2.class

@@ -6,7 +6,9 @@ import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.TableSchema;
 import it.datagen.prototype.model.rules.DataQualityRule;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -34,14 +36,23 @@ public class DatasetValidator {
 
 		// Shared context keeps stateful validators (e.g., unique keys) coherent.
 		RuleProcessingContext context = new RuleProcessingContext();
+		List<Map<String, Object>> rowValues = toValueViews(rows);
 		for (DataQualityRule rule : rules) {
-			for (Row row : rows) {
-				if (!ruleProcessors.validate(rule, row, rows, context)) {
+			for (Map<String, Object> rowValue : rowValues) {
+				if (!ruleProcessors.validate(rule, rowValue, rowValues, context)) {
 					return false;
 				}
 			}
 		}
 
 		return true;
+	}
+
+	private List<Map<String, Object>> toValueViews(List<Row> rows) {
+		List<Map<String, Object>> valueViews = new ArrayList<>(rows.size());
+		for (Row row : rows) {
+			valueViews.add(row == null ? null : row.getValues());
+		}
+		return valueViews;
 	}
 }

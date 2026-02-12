@@ -2,10 +2,10 @@ package it.datagen.prototype.engine.processing.handlers;
 
 import it.datagen.prototype.engine.processing.RuleHandler;
 import it.datagen.prototype.engine.processing.RuleProcessingContext;
-import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.rules.ConditionalCompletenessRule;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ConditionalCompletenessRuleHandler implements RuleHandler<ConditionalCompletenessRule> {
@@ -18,46 +18,48 @@ public class ConditionalCompletenessRuleHandler implements RuleHandler<Condition
 	}
 
 	@Override
-	public boolean validate(ConditionalCompletenessRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (rule == null || row == null) {
+	public boolean validateValues(ConditionalCompletenessRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
 
-		Object conditionValue = row.getValue(rule.getConditionColumn());
+		Object conditionValue = rowValues.get(rule.getConditionColumn());
 		if (!Objects.equals(conditionValue, rule.getConditionValue())) {
 			return true;
 		}
 
-		Object targetValue = row.getValue(rule.getTargetColumn());
+		Object targetValue = rowValues.get(rule.getTargetColumn());
 		return rule.isTargetMustBeNull() == (targetValue == null);
 	}
 
 	@Override
-	public boolean fix(ConditionalCompletenessRule rule, Row row, List<Row> allRows, RuleProcessingContext context) {
-		if (validate(rule, row, allRows, context)) {
+	public boolean fixValues(ConditionalCompletenessRule rule, Map<String, Object> rowValues,
+			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
+		if (validateValues(rule, rowValues, allRowValues, context)) {
 			return true;
 		}
-		if (rule == null || row == null) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
 
-		Object conditionValue = row.getValue(rule.getConditionColumn());
+		Object conditionValue = rowValues.get(rule.getConditionColumn());
 		if (!Objects.equals(conditionValue, rule.getConditionValue())) {
 			return true;
 		}
 
 		if (rule.isTargetMustBeNull()) {
-			row.setValue(rule.getTargetColumn(), null);
+			rowValues.put(rule.getTargetColumn(), null);
 			return true;
 		}
 
-		Object targetValue = row.getValue(rule.getTargetColumn());
+		Object targetValue = rowValues.get(rule.getTargetColumn());
 		if (targetValue != null) {
 			return true;
 		}
 
 		Object replacement = rule.getConditionValue() != null ? rule.getConditionValue() : DEFAULT_FILLED_TEXT;
-		row.setValue(rule.getTargetColumn(), replacement);
+		rowValues.put(rule.getTargetColumn(), replacement);
 		return true;
 	}
 }
