@@ -1,6 +1,8 @@
 package it.datagen.prototype.model.rules;
 
 import java.util.List;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 /**
  * Represents a unique key constraint (Rule #5). The combination of values in
@@ -19,5 +21,10 @@ public class UniqueKeyRule implements DataQualityRule {
 
 	public List<String> getColumnNames() {
 		return columnNames;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		return Set.copyOf(new LinkedHashSet<>(columnNames));
 	}
 }

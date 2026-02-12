@@ -1,6 +1,7 @@
 package it.datagen.prototype.model.rules;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents a rule that compares values between two columns within the same
@@ -53,6 +54,11 @@ public class ColumnComparisonRule implements DataQualityRule {
 
 	public boolean isAllowEqual() {
 		return allowEqual;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		return Set.of(smallerColumn, largerColumn);
 	}
 
 }

@@ -2,8 +2,10 @@ package it.datagen.prototype.model.rules;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents a rule that checks a constraint on an aggregated value over a
@@ -82,5 +84,12 @@ public class AggregationRule implements DataQualityRule {
 
 	public double getThreshold() {
 		return threshold;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		Set<String> columns = new LinkedHashSet<>(groupByColumns);
+		columns.add(aggregationColumn);
+		return Collections.unmodifiableSet(columns);
 	}
 }

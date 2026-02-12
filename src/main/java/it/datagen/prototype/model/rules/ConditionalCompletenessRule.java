@@ -1,6 +1,7 @@
 package it.datagen.prototype.model.rules;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents a conditional completeness rule (Implication Rule 7.1). This rule
@@ -60,6 +61,11 @@ public class ConditionalCompletenessRule implements DataQualityRule {
 
 	public boolean isTargetMustBeNull() {
 		return targetMustBeNull;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		return Set.of(conditionColumn, targetColumn);
 	}
 
 }

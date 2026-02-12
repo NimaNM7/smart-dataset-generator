@@ -1,6 +1,7 @@
 package it.datagen.prototype.model.rules;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents a rule that compares the string length of values in two different
@@ -54,6 +55,11 @@ public class LengthComparisonRule implements DataQualityRule {
 
 	public ComparisonType getComparison() {
 		return comparison;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		return Set.of(firstColumn, secondColumn);
 	}
 
 }

@@ -2,8 +2,10 @@ package it.datagen.prototype.model.rules;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents a Functional Dependency (FD) rule (e.g., A -> B). This rule states
@@ -50,6 +52,13 @@ public class FunctionalDependencyRule implements DataQualityRule {
 
 	public String getDependentColumn() {
 		return dependentColumn;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		Set<String> columns = new LinkedHashSet<>(determinantColumns);
+		columns.add(dependentColumn);
+		return Collections.unmodifiableSet(columns);
 	}
 
 }

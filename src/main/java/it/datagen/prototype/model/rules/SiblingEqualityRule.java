@@ -1,5 +1,7 @@
 package it.datagen.prototype.model.rules;
 import java.util.Objects;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Represents an intra-table equality rule for "sibling" rows (Rule #4.2). This
@@ -46,5 +48,12 @@ public class SiblingEqualityRule implements DataQualityRule {
 
 	public String getTargetColumn() {
 		return targetColumn;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		Set<String> columns = new LinkedHashSet<>(parentRelationship.requiredColumns());
+		columns.add(targetColumn);
+		return Set.copyOf(columns);
 	}
 }

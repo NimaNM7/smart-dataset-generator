@@ -1,5 +1,7 @@
 package it.datagen.prototype.model.rules;
 
+import java.util.Set;
+
 /**
  * Represents an intra-table reference rule (Rule #4), defining a parent-child
  * relationship. Example: In an employee table, a "Manager_ID" column refers to
@@ -34,5 +36,10 @@ public class IntraTableParentRule implements DataQualityRule {
 
 	public String getParentIdColumn() {
 		return parentIdColumn;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		return Set.of(childIdColumn, parentIdColumn);
 	}
 }

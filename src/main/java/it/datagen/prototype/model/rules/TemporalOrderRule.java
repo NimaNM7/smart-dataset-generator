@@ -1,5 +1,7 @@
 package it.datagen.prototype.model.rules;
 
+import java.util.Set;
+
 /**
  * Represents a temporal order rule (Rule #1). Ensures that a date in one column
  * is chronologically before (or equal to) a date in another column.
@@ -39,6 +41,11 @@ public class TemporalOrderRule implements DataQualityRule {
 
 	public boolean isAllowEqual() {
 		return allowEqual;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		return Set.of(earlierDateColumn, laterDateColumn);
 	}
 
 }

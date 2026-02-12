@@ -7,15 +7,9 @@ import it.datagen.prototype.engine.processing.RuleProcessorRegistry;
 import it.datagen.prototype.model.Column;
 import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.TableSchema;
-import it.datagen.prototype.model.rules.ColumnComparisonRule;
-import it.datagen.prototype.model.rules.ConditionalCompletenessRule;
 import it.datagen.prototype.model.rules.DataQualityRule;
-import it.datagen.prototype.model.rules.FunctionalDependencyRule;
-import it.datagen.prototype.model.rules.LengthComparisonRule;
-import it.datagen.prototype.model.rules.TemporalOrderRule;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -42,10 +36,21 @@ public class DatasetGeneratorV2 {
 	private final TypeValueGenerator typeValueGenerator;
 	private final int maxFixPasses;
 
+	/**
+	 * Creates a generator with default collaborators.
+	 */
 	public DatasetGeneratorV2() {
 		this(RuleProcessorRegistry.withDefaults(), new DependencySolver(), new TypeValueGenerator(), 3);
 	}
 
+	/**
+	 * Creates a generator with explicit collaborators.
+	 *
+	 * @param ruleProcessors    rule validation/fix registry
+	 * @param dependencySolver  dependency solver used for staged ordering
+	 * @param typeValueGenerator column type value generator
+	 * @param maxFixPasses      maximum validate/fix passes per stage
+	 */
 	public DatasetGeneratorV2(RuleProcessorRegistry ruleProcessors, DependencySolver dependencySolver,
 			TypeValueGenerator typeValueGenerator, int maxFixPasses) {
 		this.ruleProcessors = Objects.requireNonNull(ruleProcessors, "Rule processors cannot be null.");
@@ -54,6 +59,14 @@ public class DatasetGeneratorV2 {
 		this.maxFixPasses = Math.max(1, maxFixPasses);
 	}
 
+	/**
+	 * Generates a dataset using staged intra-row validation/fix passes.
+	 *
+	 * @param schema   table schema
+	 * @param rules    quality rules used during generation
+	 * @param rowCount number of rows to generate
+	 * @return generated rows
+	 */
 	public List<Row> generateTable(TableSchema schema, List<DataQualityRule> rules, int rowCount) {
 		Objects.requireNonNull(schema, "Table schema cannot be null.");
 		Objects.requireNonNull(rules, "Rules cannot be null.");
@@ -61,9 +74,8 @@ public class DatasetGeneratorV2 {
 			throw new IllegalArgumentException("Row count must be >= 0.");
 		}
 
+		validateRuleColumnsExist(schema, rules);
 		List<Set<String>> generationStages = buildGenerationStages(schema, rules);
-		Map<String, Column> columnsByName = schema.getColumnMap();
-		List<DataQualityRule> generationRules = List.copyOf(rules);
 		Set<String> allColumnNames = schema.getColumns().stream()
 				.map(Column::getName)
 				.collect(Collectors.toCollection(LinkedHashSet::new));
@@ -77,14 +89,14 @@ public class DatasetGeneratorV2 {
 			Set<String> availableColumns = new LinkedHashSet<>();
 
 			for (Set<String> stageColumns : generationStages) {
-				generateStageValues(stageColumns, columnsByName, rowValues);
+				generateStageValues(stageColumns, schema.getColumnMap(), rowValues);
 				availableColumns.addAll(stageColumns);
-				if (!applyRulesUntilStable(generationRules, rowValues, allRowValues, context, availableColumns)) {
+				if (!applyRulesUntilStable(rules, rowValues, allRowValues, context, availableColumns)) {
 					throw new IllegalStateException("Unable to satisfy stage rules for row index " + rowIndex);
 				}
 			}
 
-			if (!applyRulesUntilStable(generationRules, rowValues, allRowValues, context, allColumnNames)) {
+			if (!applyRulesUntilStable(rules, rowValues, allRowValues, context, allColumnNames)) {
 				throw new IllegalStateException("Unable to satisfy row rules for row index " + rowIndex);
 			}
 
@@ -96,11 +108,17 @@ public class DatasetGeneratorV2 {
 		return generatedRows;
 	}
 
+	/**
+	 * Builds topological SCC stages and appends singleton stages for unconstrained columns.
+	 *
+	 * @param schema table schema
+	 * @param rules  rules used for dependency analysis
+	 * @return ordered generation stages
+	 */
 	private List<Set<String>> buildGenerationStages(TableSchema schema, List<DataQualityRule> rules) {
 		List<Set<String>> ruleDrivenStages = dependencySolver.solveTopologically(rules).stream()
-				.filter(component -> !component.isEmpty())
-				.map(LinkedHashSet::new)
-				.collect(Collectors.toList());
+				.<Set<String>>map(LinkedHashSet::new)
+				.toList();
 
 		Set<String> plannedColumns = ruleDrivenStages.stream()
 				.flatMap(Set::stream)
@@ -116,19 +134,29 @@ public class DatasetGeneratorV2 {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Generates all values for one stage.
+	 *
+	 * @param stageColumns stage columns
+	 * @param columnsByName schema column index
+	 * @param rowValues target row values map
+	 */
 	private void generateStageValues(Set<String> stageColumns, Map<String, Column> columnsByName,
 			Map<String, Object> rowValues) {
-		stageColumns.stream()
-				.filter(columnName -> !rowValues.containsKey(columnName))
-				.forEach(columnName -> {
-					Column column = columnsByName.get(columnName);
-					if (column == null) {
-						throw new IllegalArgumentException("Column referenced by rule not found in schema: " + columnName);
-					}
-					rowValues.put(columnName, typeValueGenerator.generateValue(column.getType()));
-				});
+		stageColumns.forEach(columnName -> rowValues.put(columnName,
+				typeValueGenerator.generateValue(columnsByName.get(columnName).getType())));
 	}
 
+	/**
+	 * Repeatedly validates and fixes applicable rules until stable or pass budget is exhausted.
+	 *
+	 * @param rules rules to process
+	 * @param rowValues current row values
+	 * @param allRowValues already generated rows
+	 * @param context processing context
+	 * @param availableColumns currently generated columns
+	 * @return true when all applicable rules are valid
+	 */
 	private boolean applyRulesUntilStable(List<DataQualityRule> rules, Map<String, Object> rowValues,
 			List<Map<String, Object>> allRowValues, RuleProcessingContext context, Set<String> availableColumns) {
 		for (int pass = 0; pass < maxFixPasses; pass++) {
@@ -167,33 +195,35 @@ public class DatasetGeneratorV2 {
 	}
 
 	/**
-	 * This function tells us weather we have enough data to validate the rule or not. We
-	 * first get the columns that are important for our rule and then check that we generated
-	 * these columns before or not.
+	 * Returns true when all required columns for this rule are already available.
+	 *
+	 * @param rule rule to inspect
+	 * @param availableColumns currently generated columns
+	 * @return whether validation/fix can run at this stage
 	 */
 	private boolean isEnoughDataForRuleValidation(DataQualityRule rule, Set<String> availableColumns) {
-		Set<String> requiredColumns = requiredColumns(rule);
-		return availableColumns.containsAll(requiredColumns);
+		return availableColumns.containsAll(rule.requiredColumns());
 	}
 
-	private Set<String> requiredColumns(DataQualityRule rule) {
-		if (rule instanceof ColumnComparisonRule comparisonRule) {
-            return new LinkedHashSet<>(Arrays.asList(comparisonRule.getSmallerColumn(), comparisonRule.getLargerColumn()));
+	/**
+	 * Validates that all rule-referenced columns exist in the schema.
+	 *
+	 * @param schema table schema
+	 * @param rules rules to verify
+	 */
+	private void validateRuleColumnsExist(TableSchema schema, List<DataQualityRule> rules) {
+		Set<String> schemaColumns = schema.getColumns().stream()
+				.map(Column::getName)
+				.collect(Collectors.toSet());
+
+		Set<String> unknownColumns = rules.stream()
+				.map(DataQualityRule::requiredColumns)
+				.flatMap(Set::stream)
+				.filter(columnName -> !schemaColumns.contains(columnName))
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+
+		if (!unknownColumns.isEmpty()) {
+			throw new IllegalArgumentException("Rules reference columns that do not exist in schema: " + unknownColumns);
 		}
-		if (rule instanceof TemporalOrderRule temporalRule) {
-            return new LinkedHashSet<>(Arrays.asList(temporalRule.getEarlierDateColumn(), temporalRule.getLaterDateColumn()));
-		}
-		if (rule instanceof LengthComparisonRule lengthRule) {
-            return new LinkedHashSet<>(Arrays.asList(lengthRule.getFirstColumn(), lengthRule.getSecondColumn()));
-		}
-		if (rule instanceof ConditionalCompletenessRule completenessRule) {
-            return new LinkedHashSet<>(Arrays.asList(completenessRule.getConditionColumn(), completenessRule.getTargetColumn()));
-		}
-		if (rule instanceof FunctionalDependencyRule functionalDependencyRule) {
-            Set<String> columns = new LinkedHashSet<>(functionalDependencyRule.getDeterminantColumns());
-			columns.add(functionalDependencyRule.getDependentColumn());
-			return columns;
-		}
-		return Collections.emptySet();
 	}
 }

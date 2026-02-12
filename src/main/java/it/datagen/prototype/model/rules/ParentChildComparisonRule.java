@@ -1,5 +1,7 @@
 package it.datagen.prototype.model.rules;
 import java.util.Objects;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Represents an intra-table value comparison between a parent and a child row
@@ -38,5 +40,12 @@ public class ParentChildComparisonRule implements DataQualityRule {
 
 	public ColumnComparisonRule getComparisonLogic() {
 		return comparisonLogic;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		Set<String> columns = new LinkedHashSet<>(parentRelationship.requiredColumns());
+		columns.addAll(comparisonLogic.requiredColumns());
+		return Set.copyOf(columns);
 	}
 }

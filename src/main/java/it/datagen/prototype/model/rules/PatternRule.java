@@ -1,5 +1,6 @@
 package it.datagen.prototype.model.rules;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -38,5 +39,10 @@ public class PatternRule implements DataQualityRule {
 
 	public Pattern getPattern() {
 		return pattern;
+	}
+
+	@Override
+	public Set<String> requiredColumns() {
+		return Set.of(columnName);
 	}
 }
