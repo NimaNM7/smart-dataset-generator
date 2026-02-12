@@ -1,7 +1,5 @@
 package it.datagen.prototype.model.rules;
 
-import it.datagen.prototype.engine.dependencies.DependencyGraphVisitor;
-
 import java.util.Objects;
 
 /**
@@ -13,7 +11,7 @@ import java.util.Objects;
  * Example (Temporal): 'StartDate' must be before or equal to 'EndDate'. Example
  * (Amount): 'DiscountedPrice' must be less than or equal to 'OriginalPrice'.
  */
-public class ColumnComparisonRule implements DataQualityRule, DependencyAwareRule {
+public class ColumnComparisonRule implements DataQualityRule {
 
 	private final String smallerColumn;
 	private final String largerColumn;
@@ -57,8 +55,4 @@ public class ColumnComparisonRule implements DataQualityRule, DependencyAwareRul
 		return allowEqual;
 	}
 
-	@Override
-	public void accept(DependencyGraphVisitor visitor) {
-		visitor.visit(this);
-	}
 }

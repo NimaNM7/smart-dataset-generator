@@ -1,12 +1,10 @@
 package it.datagen.prototype.model.rules;
 
-import it.datagen.prototype.engine.dependencies.DependencyGraphVisitor;
-
 /**
  * Represents a temporal order rule (Rule #1). Ensures that a date in one column
  * is chronologically before (or equal to) a date in another column.
  */
-public class TemporalOrderRule implements DataQualityRule, DependencyAwareRule {
+public class TemporalOrderRule implements DataQualityRule {
 
 	private final String earlierDateColumn;
 	private final String laterDateColumn;
@@ -43,8 +41,4 @@ public class TemporalOrderRule implements DataQualityRule, DependencyAwareRule {
 		return allowEqual;
 	}
 
-	@Override
-	public void accept(DependencyGraphVisitor visitor) {
-		visitor.visit(this);
-	}
 }

@@ -1,7 +1,5 @@
 package it.datagen.prototype.model.rules;
 
-import it.datagen.prototype.engine.dependencies.DependencyGraphVisitor;
-
 import java.util.Objects;
 
 /**
@@ -11,7 +9,7 @@ import java.util.Objects;
  * Example: The length of 'Acronym' should not be greater than the length of
  * 'FullName'.
  */
-public class LengthComparisonRule implements DataQualityRule, DependencyAwareRule {
+public class LengthComparisonRule implements DataQualityRule {
 
 	public enum ComparisonType {
 		SHORTER_THAN_OR_EQUAL, LONGER_THAN_OR_EQUAL, STRICTLY_SHORTER_THAN, STRICTLY_LONGER_THAN
@@ -58,8 +56,4 @@ public class LengthComparisonRule implements DataQualityRule, DependencyAwareRul
 		return comparison;
 	}
 
-	@Override
-	public void accept(DependencyGraphVisitor visitor) {
-		visitor.visit(this);
-	}
 }

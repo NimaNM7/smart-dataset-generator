@@ -1,6 +1,13 @@
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/DataGenerator.java
-/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/DependencyGraphVisitor.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/DependencyProcessorRegistry.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/DependencyRuleHandler.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/DependencySolver.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/handlers/ColumnComparisonDependencyHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/handlers/ConditionalCompletenessDependencyHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/handlers/DependencyGraphUtils.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/handlers/FunctionalDependencyDependencyHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/handlers/LengthComparisonDependencyHandler.java
+/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/dependencies/handlers/TemporalOrderDependencyHandler.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/RuleHandler.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/RuleProcessingContext.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/engine/processing/RuleProcessorRegistry.java
@@ -18,7 +25,6 @@
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/rules/ColumnComparisonRule.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/rules/ConditionalCompletenessRule.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/rules/DataQualityRule.java
-/Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/rules/DependencyAwareRule.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/rules/FunctionalDependencyRule.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/rules/IntraTableParentRule.java
 /Users/nima/Documents/research/guo/smart-data-generator/src/main/java/it/datagen/prototype/model/rules/LengthComparisonRule.java

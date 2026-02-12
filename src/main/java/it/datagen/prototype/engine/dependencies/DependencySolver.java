@@ -1,19 +1,26 @@
 package it.datagen.prototype.engine.dependencies;
 
-import it.datagen.prototype.model.rules.ColumnComparisonRule;
 import it.datagen.prototype.model.rules.DataQualityRule;
-import it.datagen.prototype.model.rules.DependencyAwareRule;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.connectivity.KosarajuStrongConnectivityInspector;
 import org.jgrapht.alg.interfaces.StrongConnectivityAlgorithm;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class DependencySolver {
+
+    private final DependencyProcessorRegistry dependencyProcessors;
+
+    public DependencySolver() {
+        this(DependencyProcessorRegistry.withDefaults());
+    }
+
+    public DependencySolver(DependencyProcessorRegistry dependencyProcessors) {
+        this.dependencyProcessors = dependencyProcessors;
+    }
 
     public List<Set<String>> solve(
             // TableSchema schema, (it may be needed later, but for now we delete it)
@@ -22,12 +29,8 @@ public class DependencySolver {
         Graph<String, DefaultEdge> graph =
                 new DefaultDirectedGraph<>(DefaultEdge.class);
 
-        DependencyGraphVisitor visitor = new DependencyGraphVisitor(graph);
-
         for (DataQualityRule rule : rules) {
-            if (rule instanceof DependencyAwareRule dr) {
-                dr.accept(visitor);
-            }
+            dependencyProcessors.addDependencies(rule, graph);
         }
 
         StrongConnectivityAlgorithm<String, DefaultEdge> sccAlg =
@@ -50,4 +53,3 @@ public class DependencySolver {
 //        System.out.println(solved);
 //    }
 }
-

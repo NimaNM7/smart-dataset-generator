@@ -1,7 +1,5 @@
 package it.datagen.prototype.model.rules;
 
-import it.datagen.prototype.engine.dependencies.DependencyGraphVisitor;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +13,7 @@ import java.util.Objects;
  * 
  * Example: In a table of addresses, (Postcode) -> (City).
  */
-public class FunctionalDependencyRule implements DataQualityRule, DependencyAwareRule {
+public class FunctionalDependencyRule implements DataQualityRule {
 
 	private final List<String> determinantColumns; // The "A" part of the dependency
 	private final String dependentColumn; // The "B" part of the dependency
@@ -54,8 +52,4 @@ public class FunctionalDependencyRule implements DataQualityRule, DependencyAwar
 		return dependentColumn;
 	}
 
-	@Override
-	public void accept(DependencyGraphVisitor visitor) {
-		visitor.visit(this);
-	}
 }

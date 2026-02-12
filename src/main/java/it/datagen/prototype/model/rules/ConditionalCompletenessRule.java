@@ -1,7 +1,5 @@
 package it.datagen.prototype.model.rules;
 
-import it.datagen.prototype.engine.dependencies.DependencyGraphVisitor;
-
 import java.util.Objects;
 
 /**
@@ -13,7 +11,7 @@ import java.util.Objects;
  * not be empty. Example: If 'HasDiscount' column is false, the 'DiscountAmount'
  * column must be empty.
  */
-public class ConditionalCompletenessRule implements DataQualityRule, DependencyAwareRule {
+public class ConditionalCompletenessRule implements DataQualityRule {
 
 	private final String conditionColumn;
 	private final Object conditionValue;
@@ -64,8 +62,4 @@ public class ConditionalCompletenessRule implements DataQualityRule, DependencyA
 		return targetMustBeNull;
 	}
 
-	@Override
-	public void accept(DependencyGraphVisitor visitor) {
-		visitor.visit(this);
-	}
 }
