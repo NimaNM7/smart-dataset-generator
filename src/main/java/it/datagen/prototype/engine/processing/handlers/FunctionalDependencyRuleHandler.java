@@ -45,9 +45,6 @@ public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDe
 	@Override
 	public boolean fixValues(FunctionalDependencyRule rule, Map<String, Object> rowValues,
 			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
-		if (validateValues(rule, rowValues, allRowValues, context)) {
-			return true;
-		}
 		if (rule == null || rowValues == null || allRowValues == null) {
 			return false;
 		}

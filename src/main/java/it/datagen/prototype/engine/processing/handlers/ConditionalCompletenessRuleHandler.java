@@ -36,9 +36,6 @@ public class ConditionalCompletenessRuleHandler implements RuleHandler<Condition
 	@Override
 	public boolean fixValues(ConditionalCompletenessRule rule, Map<String, Object> rowValues,
 			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
-		if (validateValues(rule, rowValues, allRowValues, context)) {
-			return true;
-		}
 		if (rule == null || rowValues == null) {
 			return false;
 		}

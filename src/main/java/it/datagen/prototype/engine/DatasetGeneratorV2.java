@@ -75,34 +75,40 @@ public class DatasetGeneratorV2 {
 		}
 
 		validateRuleColumnsExist(schema, rules);
-		List<Set<String>> generationStages = buildGenerationStages(schema, rules);
-		Set<String> allColumnNames = schema.getColumns().stream()
-				.map(Column::getName)
-				.collect(Collectors.toCollection(LinkedHashSet::new));
+		List<Set<String/*ColumnName*/>> generationStages = buildGenerationStages(schema, rules);
+		Map<String/*ColumnName*/, Set<DataQualityRule>> rulesByColumn = buildRulesByColumn(rules);
 
 		List<Row> generatedRows = new ArrayList<>(rowCount);
-		List<Map<String, Object>> allRowValues = new ArrayList<>(rowCount);
+		List<Map<String, Object>> tableRowValues = new ArrayList<>(rowCount);
 		RuleProcessingContext context = new RuleProcessingContext();
 
 		for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-			Map<String, Object> rowValues = new HashMap<>();
+			Map<String, Object> currentRowValues = new HashMap<>();
 			Set<String> availableColumns = new LinkedHashSet<>();
+			Set<DataQualityRule> rulesToCheck = new LinkedHashSet<>();
 
 			for (Set<String> stageColumns : generationStages) {
-				generateStageValues(stageColumns, schema.getColumnMap(), rowValues);
+				currentRowValues.putAll(generateStageInitialRowValues(stageColumns, schema.getColumnMap()));
 				availableColumns.addAll(stageColumns);
-				if (!applyRulesUntilStable(rules, rowValues, allRowValues, context, availableColumns)) {
+				rulesToCheck.addAll(rulesToCheckForColumns(stageColumns, rulesByColumn));
+				boolean foundStableRowValues = applyRulesUntilStable(
+						rulesToCheck, currentRowValues, tableRowValues, context, availableColumns
+				);
+				if (!foundStableRowValues) {
 					throw new IllegalStateException("Unable to satisfy stage rules for row index " + rowIndex);
 				}
 			}
 
-			if (!applyRulesUntilStable(rules, rowValues, allRowValues, context, allColumnNames)) {
+			boolean foundStableRowValues = applyRulesUntilStable(
+					rulesToCheck, currentRowValues, tableRowValues, context, availableColumns
+			);
+			if (!foundStableRowValues) {
 				throw new IllegalStateException("Unable to satisfy row rules for row index " + rowIndex);
 			}
 
-			Row row = new Row(rowValues);
+			Row row = new Row(currentRowValues);
 			generatedRows.add(row);
-			allRowValues.add(row.getValues());
+			tableRowValues.add(row.getValues());
 		}
 
 		return generatedRows;
@@ -135,74 +141,118 @@ public class DatasetGeneratorV2 {
 	}
 
 	/**
+	 * Builds reverse index from column names to rules that depend on them.
+	 *
+	 * @param rules rules to index
+	 * @return rules keyed by required column
+	 */
+	private Map<String, Set<DataQualityRule>> buildRulesByColumn(List<DataQualityRule> rules) {
+		Map<String, Set<DataQualityRule>> rulesByColumn = new HashMap<>();
+		for (DataQualityRule rule : rules) {
+			for (String columnName : rule.requiredColumns()) {
+				rulesByColumn.computeIfAbsent(columnName, ignored -> new LinkedHashSet<>()).add(rule);
+			}
+		}
+		return rulesByColumn;
+	}
+
+	/**
 	 * Generates all values for one stage.
 	 *
 	 * @param stageColumns stage columns
 	 * @param columnsByName schema column index
-	 * @param rowValues target row values map
+	 * @return rowValues for this stage
 	 */
-	private void generateStageValues(Set<String> stageColumns, Map<String, Column> columnsByName,
-			Map<String, Object> rowValues) {
-		stageColumns.forEach(columnName -> rowValues.put(columnName,
-				typeValueGenerator.generateValue(columnsByName.get(columnName).getType())));
+	private Map<String, Object> generateStageInitialRowValues(Set<String> stageColumns, Map<String, Column> columnsByName) {
+		return stageColumns.stream()
+				.collect(Collectors.toMap(
+						columnName -> columnName,
+						columnName -> typeValueGenerator.generateValue(
+								columnsByName.get(columnName).getType()
+						)
+				));
 	}
 
 	/**
-	 * Repeatedly validates and fixes applicable rules until stable or pass budget is exhausted.
+	 * Returns rules that depend on any of the provided columns.
 	 *
-	 * @param rules rules to process
-	 * @param rowValues current row values
-	 * @param allRowValues already generated rows
+	 * @param changedColumns changed columns
+	 * @param rulesByColumn lookup from column name to dependent rules
+	 * @return rules to check
+	 */
+	private Set<DataQualityRule> rulesToCheckForColumns(Set<String> changedColumns,
+			Map<String, Set<DataQualityRule>> rulesByColumn) {
+		return changedColumns.stream()
+				.map(rulesByColumn::get)
+				.filter(Objects::nonNull)
+				.flatMap(Set::stream)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+	}
+
+	/**
+	 * Returns the union of two rule sets preserving insertion order.
+	 *
+	 * @param base first set
+	 * @param extra second set
+	 * @return merged set
+	 */
+	private Set<DataQualityRule> unionRules(Set<DataQualityRule> base, Set<DataQualityRule> extra) {
+		return Stream.concat(base.stream(), extra.stream())
+				.collect(Collectors.toCollection(LinkedHashSet::new));
+	}
+
+	/**
+	 * Repeatedly validates and fixes applicable rules-to-check until stable or pass budget is exhausted.
+	 *
+	 * @param rulesToCheck rules that must be (re)checked
+	 * @param currentRowValues current row values
+	 * @param tableRowValues already generated rows
 	 * @param context processing context
 	 * @param availableColumns currently generated columns
-	 * @return true when all applicable rules are valid
+	 * @return check result with success flag and remaining rules to check
 	 */
-	private boolean applyRulesUntilStable(List<DataQualityRule> rules, Map<String, Object> rowValues,
-			List<Map<String, Object>> allRowValues, RuleProcessingContext context, Set<String> availableColumns) {
-		for (int pass = 0; pass < maxFixPasses; pass++) {
-			boolean changed = false;
-			for (DataQualityRule rule : rules) {
-				if (!isEnoughDataForRuleValidation(rule, availableColumns)) {
-					continue;
-				}
+	private boolean applyRulesUntilStable(Set<DataQualityRule> rulesToCheck, Map<String, Object> currentRowValues,
+			List<Map<String, Object>> tableRowValues, RuleProcessingContext context, Set<String> availableColumns) {
 
-				boolean valid = ruleProcessors.validate(rule, rowValues, allRowValues, context);
+		// some rules must be checked later, because they check columns that we don't have now.
+		Set<DataQualityRule> currentRulesToCheck = rulesToCheck.stream().filter(rule ->
+				availableColumns.containsAll(rule.requiredColumns())).collect(Collectors.toSet());
+
+		for (int pass = 0; pass < maxFixPasses; pass++) {
+			if (currentRulesToCheck.isEmpty()) {
+				return true;
+			}
+
+			boolean anyFixApplied = false;
+
+			for (DataQualityRule rule : currentRulesToCheck) {
+
+				boolean valid = ruleProcessors.validate(rule, currentRowValues, tableRowValues, context);
 				if (valid) {
 					continue;
 				}
 
-				boolean fixed = ruleProcessors.fix(rule, rowValues, allRowValues, context);
+				boolean fixed = ruleProcessors.fix(rule, currentRowValues, tableRowValues, context);
 				if (!fixed) {
 					return false;
 				}
-				changed = true;
+					anyFixApplied = true;
+				}
+
+				if (!anyFixApplied) {
+					// all rules that were only for the columns of this stage are valid and there is no need to recheck them.
+					rulesToCheck.removeAll(currentRulesToCheck);
+					return true;
+				}
 			}
 
-			if (!changed) {
-				return true;
+			for (DataQualityRule rule : currentRulesToCheck) {
+				if (!ruleProcessors.validate(rule, currentRowValues, tableRowValues, context)) {
+					return false;
+				}
 			}
-		}
-
-		for (DataQualityRule rule : rules) {
-			if (!isEnoughDataForRuleValidation(rule, availableColumns)) {
-				continue;
-			}
-			if (!ruleProcessors.validate(rule, rowValues, allRowValues, context)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Returns true when all required columns for this rule are already available.
-	 *
-	 * @param rule rule to inspect
-	 * @param availableColumns currently generated columns
-	 * @return whether validation/fix can run at this stage
-	 */
-	private boolean isEnoughDataForRuleValidation(DataQualityRule rule, Set<String> availableColumns) {
-		return availableColumns.containsAll(rule.requiredColumns());
+			rulesToCheck.removeAll(currentRulesToCheck);
+			return true;
 	}
 
 	/**
@@ -225,5 +275,8 @@ public class DatasetGeneratorV2 {
 		if (!unknownColumns.isEmpty()) {
 			throw new IllegalArgumentException("Rules reference columns that do not exist in schema: " + unknownColumns);
 		}
+	}
+
+	private record RuleCheckResult(boolean success, Set<DataQualityRule> remainingRulesToCheck) {
 	}
 }

@@ -35,9 +35,6 @@ public class TemporalOrderRuleHandler implements RuleHandler<TemporalOrderRule> 
 	@Override
 	public boolean fixValues(TemporalOrderRule rule, Map<String, Object> rowValues,
 			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
-		if (validateValues(rule, rowValues, allRowValues, context)) {
-			return true;
-		}
 		if (rule == null || rowValues == null) {
 			return false;
 		}

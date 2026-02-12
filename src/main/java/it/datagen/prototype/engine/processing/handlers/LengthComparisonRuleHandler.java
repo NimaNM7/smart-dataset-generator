@@ -40,9 +40,6 @@ public class LengthComparisonRuleHandler implements RuleHandler<LengthComparison
 	@Override
 	public boolean fixValues(LengthComparisonRule rule, Map<String, Object> rowValues,
 			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
-		if (validateValues(rule, rowValues, allRowValues, context)) {
-			return true;
-		}
 		if (rule == null || rowValues == null) {
 			return false;
 		}
