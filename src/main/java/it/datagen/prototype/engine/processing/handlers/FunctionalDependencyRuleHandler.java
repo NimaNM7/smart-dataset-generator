@@ -4,7 +4,7 @@ import it.datagen.prototype.engine.processing.RuleHandler;
 import it.datagen.prototype.engine.processing.RuleProcessingContext;
 import it.datagen.prototype.model.rules.FunctionalDependencyRule;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,8 +20,11 @@ public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDe
 	@Override
 	public boolean validateValues(FunctionalDependencyRule rule, Map<String, Object> rowValues,
 			List<Map<String, Object>> allRowValues, RuleProcessingContext context) {
-		if (rule == null || rowValues == null || allRowValues == null) {
+		if (rule == null || rowValues == null) {
 			return false;
+		}
+		if (allRowValues == null || allRowValues.isEmpty()) {
+			return true;
 		}
 
 		Object dependentValue = rowValues.get(rule.getDependentColumn());
@@ -46,37 +49,28 @@ public class FunctionalDependencyRuleHandler implements RuleHandler<FunctionalDe
 	@Override
 	public boolean fixValues(FunctionalDependencyRule rule, Map<String, Object> rowValues,
 			List<Map<String, Object>> allRowValues, RuleProcessingContext context, Set<String> fixedColumns) {
-		if (rule == null || rowValues == null || allRowValues == null) {
+		if (rule == null || rowValues == null) {
 			return false;
 		}
-		if (fixedColumns.contains(rule.getDependentColumn())) {
+		Set<String> lockedColumns = fixedColumns == null ? Collections.emptySet() : fixedColumns;
+		if (lockedColumns.contains(rule.getDependentColumn())) {
 			return false;
+		}
+		if (allRowValues == null || allRowValues.isEmpty()) {
+			return true;
 		}
 
-		List<Map<String, Object>> equivalenceClass = new ArrayList<>();
-		equivalenceClass.add(rowValues);
 		for (Map<String, Object> candidate : allRowValues) {
 			if (candidate == null || candidate == rowValues) {
 				continue;
 			}
 			if (sameDeterminants(rowValues, candidate, rule.getDeterminantColumns())) {
-				equivalenceClass.add(candidate);
+				rowValues.put(rule.getDependentColumn(), candidate.get(rule.getDependentColumn()));
+				return true;
 			}
 		}
 
-		Object canonicalValue = selectCanonicalDependentValue(rule, equivalenceClass);
-		rowValues.put(rule.getDependentColumn(), canonicalValue);
-		return true;
-	}
-
-	private Object selectCanonicalDependentValue(FunctionalDependencyRule rule, List<Map<String, Object>> rows) {
-		for (Map<String, Object> candidate : rows) {
-			Object value = candidate.get(rule.getDependentColumn());
-			if (value != null) {
-				return value;
-			}
-		}
-		return null;
+		return false;
 	}
 
 	private boolean sameDeterminants(Map<String, Object> first, Map<String, Object> second,

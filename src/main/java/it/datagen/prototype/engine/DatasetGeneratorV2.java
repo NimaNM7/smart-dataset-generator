@@ -40,7 +40,7 @@ public class DatasetGeneratorV2 {
 	 * Creates a generator with default collaborators.
 	 */
 	public DatasetGeneratorV2() {
-		this(RuleProcessorRegistry.withDefaults(), new DependencySolver(), new TypeValueGenerator(), 3);
+		this(RuleProcessorRegistry.withDefaults(), new DependencySolver(), new TypeValueGenerator(), 5);
 	}
 
 	/**
@@ -192,18 +192,6 @@ public class DatasetGeneratorV2 {
 	}
 
 	/**
-	 * Returns the union of two rule sets preserving insertion order.
-	 *
-	 * @param base first set
-	 * @param extra second set
-	 * @return merged set
-	 */
-	private Set<DataQualityRule> unionRules(Set<DataQualityRule> base, Set<DataQualityRule> extra) {
-		return Stream.concat(base.stream(), extra.stream())
-				.collect(Collectors.toCollection(LinkedHashSet::new));
-	}
-
-	/**
 	 * Repeatedly validates and fixes applicable rules-to-check until stable or pass budget is exhausted.
 	 *
 	 * @param rulesToCheck rules that must be (re)checked
@@ -240,6 +228,7 @@ public class DatasetGeneratorV2 {
 				if (!fixed) {
 					return false;
 				}
+
 					anyFixApplied = true;
 				}
 

@@ -7,12 +7,7 @@ import it.datagen.prototype.engine.dependencies.DependencySolver;
 import it.datagen.prototype.model.Column;
 import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.TableSchema;
-import it.datagen.prototype.model.rules.ColumnComparisonRule;
-import it.datagen.prototype.model.rules.ConditionalCompletenessRule;
-import it.datagen.prototype.model.rules.DataQualityRule;
-import it.datagen.prototype.model.rules.FunctionalDependencyRule;
-import it.datagen.prototype.model.rules.LengthComparisonRule;
-import it.datagen.prototype.model.rules.TemporalOrderRule;
+import it.datagen.prototype.model.rules.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -28,8 +23,8 @@ import java.util.stream.Collectors;
 
 public class BenchmarkMain {
 
-	private static final int ROW_COUNT = 100;
-	private static final int BENCHMARK_RUNS = 5;
+	private static final int ROW_COUNT = 10000;
+	private static final int BENCHMARK_RUNS = 1;
 	private static final Path OUTPUT_DIR = Path.of("output");
 
 	public static void main(String[] args) throws IOException {
@@ -64,58 +59,38 @@ public class BenchmarkMain {
 				new Column("region", String.class),
 				new Column("city", String.class),
 				new Column("shortCode", String.class),
-				new Column("fullCode", String.class),
+				new Column("country", String.class),
 				new Column("startDate", LocalDate.class),
 				new Column("endDate", LocalDate.class),
 				new Column("approvalDate", LocalDate.class),
 				new Column("baseAmount", Integer.class),
 				new Column("discountedAmount", Integer.class),
-				new Column("spentAmount", Integer.class),
-				new Column("limitAmount", Integer.class),
-				new Column("statusFlag", Boolean.class),
-				new Column("statusNote", String.class),
-				new Column("category", String.class)
+				new Column("limitAmount", Integer.class)
 		);
 		return new TableSchema("demo_dataset", columns);
 	}
 
 	private static List<DataQualityRule> buildRules() {
 		return List.of(
-				// SCC #1 (string-heavy core): region -> city -> shortCode -> fullCode -> region
+				// SCC #1 (Strings): region -> city -> shortCode -> region
 				new FunctionalDependencyRule(List.of("region"), "city"),
 				new FunctionalDependencyRule(List.of("city"), "shortCode"),
-				new LengthComparisonRule("shortCode", "fullCode",
-						LengthComparisonRule.ComparisonType.SHORTER_THAN_OR_EQUAL),
-				new LengthComparisonRule("fullCode", "region",
-						LengthComparisonRule.ComparisonType.SHORTER_THAN_OR_EQUAL),
-				new LengthComparisonRule("city", "region",
+				new LengthComparisonRule("shortCode", "region",
 						LengthComparisonRule.ComparisonType.SHORTER_THAN_OR_EQUAL),
 
-				// SCC #2 (dates): startDate -> endDate -> approvalDate -> startDate
+				new FunctionalDependencyRule(List.of("city"), "country"),
+
+				// SCC #2 (Dates): startDate -> endDate -> approvalDate -> startDate
 				new TemporalOrderRule("startDate", "endDate", true),
-				new TemporalOrderRule("endDate", "startDate", true),
 				new TemporalOrderRule("endDate", "approvalDate", true),
 				new TemporalOrderRule("approvalDate", "startDate", true),
 
-				// SCC #3 (numbers): discounted -> base -> limit -> spent -> discounted
+				// SCC #3 (Numbers): discounted -> base -> limit -> discounted
 				new ColumnComparisonRule("discountedAmount", "baseAmount", true),
 				new ColumnComparisonRule("baseAmount", "limitAmount", true),
-				new ColumnComparisonRule("limitAmount", "spentAmount", true),
-				new ColumnComparisonRule("spentAmount", "discountedAmount", true),
+				new ColumnComparisonRule("limitAmount", "discountedAmount", true),
 
-				// status/category knot
-				new ConditionalCompletenessRule("statusFlag", true, "statusNote", false),
-				new LengthComparisonRule("statusNote", "category",
-						LengthComparisonRule.ComparisonType.SHORTER_THAN_OR_EQUAL),
-				new LengthComparisonRule("category", "statusNote",
-						LengthComparisonRule.ComparisonType.SHORTER_THAN_OR_EQUAL),
-
-				// Cross-knot links to make the dependency graph more realistic and dense
-				new FunctionalDependencyRule(List.of("region"), "statusFlag"),
-				new LengthComparisonRule("category", "shortCode",
-						LengthComparisonRule.ComparisonType.SHORTER_THAN_OR_EQUAL),
-				new FunctionalDependencyRule(List.of("approvalDate"), "discountedAmount"),
-				new FunctionalDependencyRule(List.of("limitAmount"), "startDate")
+				new ConditionalCompletenessRule("city", "veritatis", "discountedAmount", false)
 		);
 	}
 
