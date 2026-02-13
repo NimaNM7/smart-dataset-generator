@@ -18,20 +18,20 @@ import java.util.Set;
 /**
  * Facade for rule-oriented dataset generation operations.
  */
-public class DatasetGenerator {
+public class DatasetGeneratorV1 {
 
 	private final RuleProcessorRegistry ruleProcessors;
 	private final TypeValueGenerator typeValueGenerator;
 
-	public DatasetGenerator() {
+	public DatasetGeneratorV1() {
 		this(RuleProcessorRegistry.withDefaults(), new TypeValueGenerator());
 	}
 
-	public DatasetGenerator(RuleProcessorRegistry ruleProcessors) {
+	public DatasetGeneratorV1(RuleProcessorRegistry ruleProcessors) {
 		this(ruleProcessors, new TypeValueGenerator());
 	}
 
-	public DatasetGenerator(RuleProcessorRegistry ruleProcessors, TypeValueGenerator typeValueGenerator) {
+	public DatasetGeneratorV1(RuleProcessorRegistry ruleProcessors, TypeValueGenerator typeValueGenerator) {
 		this.ruleProcessors = ruleProcessors;
 		this.typeValueGenerator = typeValueGenerator;
 	}
@@ -65,19 +65,29 @@ public class DatasetGenerator {
 	}
 
 	public List<Row> generateTable(TableSchema tableSchema, List<DataQualityRule> rules) {
+		return generateTable(tableSchema, rules, 1000);
+	}
+
+	public List<Row> generateTable(TableSchema tableSchema, List<DataQualityRule> rules, int rowCount) {
 		Objects.requireNonNull(tableSchema, "Table schema cannot be null.");
+		Objects.requireNonNull(rules, "Rules cannot be null.");
+		if (rowCount < 0) {
+			throw new IllegalArgumentException("Row count must be >= 0.");
+		}
+
 		List<Row> allRows = new ArrayList<>();
 		RuleProcessingContext context = new RuleProcessingContext();
 
-		// TODO: do something else for these constants (const vals or env variables)
-		for (int i = 0; i < 1000; i++) {
+		for (int i = 0; i < rowCount; i++) {
 			Row row = generateRow(tableSchema.getColumns());
 			int numberOfTries = 0;
 			while (numberOfTries < 3) {
-				if (!validateAndFixRow(rules, row, allRows, context))
+				if (!validateAndFixRow(rules, row, allRows, context)) {
 					break;
+				}
 				numberOfTries++;
 			}
+			allRows.add(row);
 		}
 
 		return allRows;
