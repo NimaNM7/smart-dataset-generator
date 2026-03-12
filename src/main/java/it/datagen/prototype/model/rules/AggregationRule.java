@@ -92,4 +92,9 @@ public class AggregationRule implements DataQualityRule {
 		columns.add(aggregationColumn);
 		return Collections.unmodifiableSet(columns);
 	}
+
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.GLOBAL;
+	}
 }

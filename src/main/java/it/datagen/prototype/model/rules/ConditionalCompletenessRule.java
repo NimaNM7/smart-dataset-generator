@@ -68,4 +68,9 @@ public class ConditionalCompletenessRule implements DataQualityRule {
 		return Set.of(conditionColumn, targetColumn);
 	}
 
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.ROW;
+	}
+
 }

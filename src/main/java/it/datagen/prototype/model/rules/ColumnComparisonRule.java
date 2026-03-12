@@ -61,4 +61,9 @@ public class ColumnComparisonRule implements DataQualityRule {
 		return Set.of(smallerColumn, largerColumn);
 	}
 
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.ROW;
+	}
+
 }

@@ -48,4 +48,9 @@ public class ParentChildComparisonRule implements DataQualityRule {
 		columns.addAll(comparisonLogic.requiredColumns());
 		return Set.copyOf(columns);
 	}
+
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.STRUCTURAL;
+	}
 }

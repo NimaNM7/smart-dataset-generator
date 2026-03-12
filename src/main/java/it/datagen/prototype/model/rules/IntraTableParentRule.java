@@ -42,4 +42,9 @@ public class IntraTableParentRule implements DataQualityRule {
 	public Set<String> requiredColumns() {
 		return Set.of(childIdColumn, parentIdColumn);
 	}
+
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.STRUCTURAL;
+	}
 }

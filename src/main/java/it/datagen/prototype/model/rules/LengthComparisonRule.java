@@ -62,4 +62,9 @@ public class LengthComparisonRule implements DataQualityRule {
 		return Set.of(firstColumn, secondColumn);
 	}
 
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.ROW;
+	}
+
 }

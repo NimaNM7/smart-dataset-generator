@@ -18,4 +18,13 @@ public interface DataQualityRule {
 	default Set<String> requiredColumns() {
 		return Collections.emptySet();
 	}
+
+	/**
+	 * Coarse rule classification used by planners/execution engines.
+	 *
+	 * <p>This should stay cheap and allocation-free.
+	 */
+	default RuleCategory category() {
+		return RuleCategory.UNKNOWN;
+	}
 }

@@ -56,4 +56,9 @@ public class SiblingEqualityRule implements DataQualityRule {
 		columns.add(targetColumn);
 		return Set.copyOf(columns);
 	}
+
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.STRUCTURAL;
+	}
 }

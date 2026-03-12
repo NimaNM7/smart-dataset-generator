@@ -45,4 +45,9 @@ public class PatternRule implements DataQualityRule {
 	public Set<String> requiredColumns() {
 		return Set.of(columnName);
 	}
+
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.CELL;
+	}
 }

@@ -48,4 +48,9 @@ public class TemporalOrderRule implements DataQualityRule {
 		return Set.of(earlierDateColumn, laterDateColumn);
 	}
 
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.ROW;
+	}
+
 }

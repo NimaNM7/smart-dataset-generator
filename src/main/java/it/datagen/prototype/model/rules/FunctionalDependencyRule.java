@@ -61,4 +61,9 @@ public class FunctionalDependencyRule implements DataQualityRule {
 		return Collections.unmodifiableSet(columns);
 	}
 
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.IDENTITY;
+	}
+
 }

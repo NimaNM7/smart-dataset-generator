@@ -27,4 +27,9 @@ public class UniqueKeyRule implements DataQualityRule {
 	public Set<String> requiredColumns() {
 		return Set.copyOf(new LinkedHashSet<>(columnNames));
 	}
+
+	@Override
+	public RuleCategory category() {
+		return RuleCategory.IDENTITY;
+	}
 }
