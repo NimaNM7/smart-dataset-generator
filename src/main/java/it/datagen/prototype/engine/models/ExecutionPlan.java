@@ -2,7 +2,7 @@ package it.datagen.prototype.engine.models;
 
 import it.datagen.prototype.model.rules.DataQualityRule;
 import it.datagen.prototype.model.rules.RuleCategory;
-import it.datagen.prototype.engine.planner.constraints.DomainConstraint;
+import it.datagen.prototype.engine.constraints.GenerationConstraint;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,15 +15,18 @@ public class ExecutionPlan {
 	private final List<ColumnMetadata> columns;
 	private final List<Set<String>> columnComponentsInOrder;
 	private final Map<DataQualityRule, RuleCategory> ruleCategories;
-	private final Map<String, List<DomainConstraint>> constraintIndex;
+	private final Map<String, List<GenerationConstraint>> constraintIndex;
+	private final List<GenerationConstraint> constraints;
 
 	public ExecutionPlan(List<ColumnMetadata> columns,
 			List<Set<String>> columnComponentsInOrder,
 			Map<DataQualityRule, RuleCategory> ruleCategories,
-			Map<String, List<DomainConstraint>> constraintIndex) {
+			List<GenerationConstraint> constraints,
+			Map<String, List<GenerationConstraint>> constraintIndex) {
 		this.columns = List.copyOf(Objects.requireNonNull(columns, "columns"));
 		this.columnComponentsInOrder = List.copyOf(Objects.requireNonNull(columnComponentsInOrder, "columnComponentsInOrder"));
 		this.ruleCategories = Map.copyOf(Objects.requireNonNull(ruleCategories, "ruleCategories"));
+		this.constraints = List.copyOf(Objects.requireNonNull(constraints, "constraints"));
 		this.constraintIndex = Map.copyOf(Objects.requireNonNull(constraintIndex, "constraintIndex"));
 	}
 
@@ -44,7 +47,11 @@ public class ExecutionPlan {
 		return ruleCategories;
 	}
 
-	public Map<String, List<DomainConstraint>> getConstraintIndex() {
+	public List<GenerationConstraint> getConstraints() {
+		return constraints;
+	}
+
+	public Map<String, List<GenerationConstraint>> getConstraintIndex() {
 		return constraintIndex;
 	}
 
