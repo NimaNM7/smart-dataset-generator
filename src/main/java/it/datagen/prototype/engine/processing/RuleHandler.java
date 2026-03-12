@@ -1,5 +1,6 @@
 package it.datagen.prototype.engine.processing;
 
+import it.datagen.prototype.engine.models.RuleProcessingContext;
 import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.rules.DataQualityRule;
 

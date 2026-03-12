@@ -1,7 +1,7 @@
 package it.datagen.prototype.engine.processing.handlers;
 
 import it.datagen.prototype.engine.processing.RuleHandler;
-import it.datagen.prototype.engine.processing.RuleProcessingContext;
+import it.datagen.prototype.engine.models.RuleProcessingContext;
 import it.datagen.prototype.model.rules.ColumnComparisonRule;
 
 import java.util.List;

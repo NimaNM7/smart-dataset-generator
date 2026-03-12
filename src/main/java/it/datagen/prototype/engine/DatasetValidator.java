@@ -1,6 +1,6 @@
 package it.datagen.prototype.engine;
 
-import it.datagen.prototype.engine.processing.RuleProcessingContext;
+import it.datagen.prototype.engine.models.RuleProcessingContext;
 import it.datagen.prototype.engine.processing.RuleProcessorRegistry;
 import it.datagen.prototype.model.Row;
 import it.datagen.prototype.model.TableSchema;

@@ -1,5 +1,6 @@
 package it.datagen.prototype.engine.processing;
 
+import it.datagen.prototype.engine.models.RuleProcessingContext;
 import it.datagen.prototype.engine.processing.handlers.ColumnComparisonRuleHandler;
 import it.datagen.prototype.engine.processing.handlers.ConditionalCompletenessRuleHandler;
 import it.datagen.prototype.engine.processing.handlers.FunctionalDependencyRuleHandler;
