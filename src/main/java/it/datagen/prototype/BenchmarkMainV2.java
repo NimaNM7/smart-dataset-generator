@@ -91,7 +91,12 @@ public class BenchmarkMainV2 {
                 new Column("salespersonQuota", Integer.class),
                 new Column("salespersonAchieved", Integer.class),
                 new Column("supervisorQuota", Integer.class),
-                new Column("supervisorAchieved", Integer.class)
+                new Column("supervisorAchieved", Integer.class),
+
+                new Column("vatNumber", String.class),
+                new Column("department", String.class),
+                new Column("salespersonRank", Integer.class),
+                new Column("supervisorRank", Integer.class)
         );
         return new TableSchema("sales_orders", columns);
     }
@@ -107,6 +112,7 @@ public class BenchmarkMainV2 {
      * - IntraTableParentRule for supervisory hierarchy (NEW - not in BenchmarkMain)
      * - UniqueKeyRule for order IDs
      * - ConditionalCompletenessRule for premium products
+     * - PatternRule, SiblingEqualityRule, ParentChildComparisonRule (NEW)
      */
     private static List<DataQualityRule> buildRules() {
         return List.of(
@@ -180,6 +186,21 @@ public class BenchmarkMainV2 {
                         "premium",             // condition value
                         "unitPrice",           // target column
                         false                  // not nullable when condition is true
+                ),
+
+                // PatternRule: VAT number must match format XX9999
+                new PatternRule("vatNumber", "[A-Z]{2}[0-9]{4}"),
+
+                // SiblingEqualityRule: same supervisor => same department
+                new SiblingEqualityRule(
+                        new IntraTableParentRule("salespersonId", "supervisorId"),
+                        "department"
+                ),
+
+                // ParentChildComparisonRule: salesperson rank <= supervisor's rank (cross-row)
+                new ParentChildComparisonRule(
+                        new IntraTableParentRule("salespersonId", "supervisorId"),
+                        new ColumnComparisonRule("salespersonRank", "supervisorRank", true)
                 )
         );
     }

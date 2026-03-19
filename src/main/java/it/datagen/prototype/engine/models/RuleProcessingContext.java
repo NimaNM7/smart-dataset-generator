@@ -4,6 +4,8 @@ import it.datagen.prototype.engine.constraints.util.TupleKey;
 import it.datagen.prototype.model.rules.AggregationRule;
 import it.datagen.prototype.model.rules.FunctionalDependencyRule;
 import it.datagen.prototype.model.rules.IntraTableParentRule;
+import it.datagen.prototype.model.rules.ParentChildComparisonRule;
+import it.datagen.prototype.model.rules.SiblingEqualityRule;
 import it.datagen.prototype.model.rules.UniqueKeyRule;
 
 import java.util.ArrayList;
@@ -28,6 +30,12 @@ public class RuleProcessingContext {
 	// Global/statistical rules
 	private final Map<AggregationRule, Map<TupleKey, Double>> remainingAllowanceByGroup = new HashMap<>();
 
+	// Context-backed sibling equality rules
+	private final Map<SiblingEqualityRule, Map<Object, Object>> siblingValueMaps = new HashMap<>();
+
+	// Context-backed parent-child comparison rules
+	private final Map<ParentChildComparisonRule, Map<Object, Object>> parentComparisonValueMaps = new HashMap<>();
+
 	public Map<TupleKey, Object> functionalDependencyMap(FunctionalDependencyRule rule) {
 		return functionalDependencyMaps.computeIfAbsent(rule, ignored -> new HashMap<>());
 	}
@@ -42,5 +50,13 @@ public class RuleProcessingContext {
 
 	public Map<TupleKey, Double> remainingAllowanceByGroup(AggregationRule rule) {
 		return remainingAllowanceByGroup.computeIfAbsent(rule, ignored -> new HashMap<>());
+	}
+
+	public Map<Object, Object> siblingValueMap(SiblingEqualityRule rule) {
+		return siblingValueMaps.computeIfAbsent(rule, ignored -> new HashMap<>());
+	}
+
+	public Map<Object, Object> parentComparisonValues(ParentChildComparisonRule rule) {
+		return parentComparisonValueMaps.computeIfAbsent(rule, ignored -> new HashMap<>());
 	}
 }

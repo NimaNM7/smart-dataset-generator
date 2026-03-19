@@ -55,6 +55,10 @@ public final class RowGenerationEngine {
 				}
 			} catch (RowRegenerationRequestedException e) {
 				// Retry generating a new row from scratch.
+
+				// log to see which rule is making us hard to generate dataset
+				if (attempt == maxSccRetries - 1)
+					System.out.println("hard rule: " + e.getMessage());
 				continue;
 			}
 

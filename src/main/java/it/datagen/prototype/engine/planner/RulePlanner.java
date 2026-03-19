@@ -12,7 +12,10 @@ import it.datagen.prototype.model.rules.DataQualityRule;
 import it.datagen.prototype.model.rules.FunctionalDependencyRule;
 import it.datagen.prototype.model.rules.IntraTableParentRule;
 import it.datagen.prototype.model.rules.LengthComparisonRule;
+import it.datagen.prototype.model.rules.ParentChildComparisonRule;
+import it.datagen.prototype.model.rules.PatternRule;
 import it.datagen.prototype.model.rules.RuleCategory;
+import it.datagen.prototype.model.rules.SiblingEqualityRule;
 import it.datagen.prototype.model.rules.TemporalOrderRule;
 import it.datagen.prototype.model.rules.UniqueKeyRule;
 
@@ -129,6 +132,21 @@ public class RulePlanner {
 			// Global/statistical (context-backed)
 			else if (rule instanceof AggregationRule r) {
 				constraints.add(it.datagen.prototype.engine.constraints.builtin.AggregationAllowanceConstraint.fromRule(r));
+			}
+
+			// Cell rules (single-column pattern enforcement)
+			else if (rule instanceof PatternRule r) {
+				constraints.add(it.datagen.prototype.engine.constraints.builtin.PatternConstraint.fromRule(r));
+			}
+
+			// Structural (context-backed sibling equality)
+			else if (rule instanceof SiblingEqualityRule r) {
+				constraints.add(it.datagen.prototype.engine.constraints.builtin.SiblingEqualityConstraint.fromRule(r));
+			}
+
+			// Structural (context-backed cross-row comparison)
+			else if (rule instanceof ParentChildComparisonRule r) {
+				constraints.add(it.datagen.prototype.engine.constraints.builtin.ParentChildComparisonConstraint.fromRule(r));
 			}
 		}
 		return constraints;
