@@ -13,6 +13,9 @@ import java.util.UUID;
  */
 public final class SamplerRegistry {
 
+	private static final String STRING_CHARS =
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
 	private SamplerRegistry() {
 	}
 
@@ -97,16 +100,10 @@ public final class SamplerRegistry {
 		int minLen = domain.minLength();
 		int maxLen = domain.maxLength();
 		int targetLen = minLen == maxLen ? minLen : (minLen + context.random().nextInt((maxLen - minLen) + 1));
-		String base = context.faker().lorem().word();
-		if (base.length() == targetLen) {
-			return base;
-		}
-		if (base.length() > targetLen) {
-			return base.substring(0, targetLen);
-		}
-		StringBuilder builder = new StringBuilder(base);
-		while (builder.length() < targetLen) {
-			builder.append('_');
+
+		StringBuilder builder = new StringBuilder(targetLen);
+		for (int i = 0; i < targetLen; i++) {
+			builder.append(STRING_CHARS.charAt(context.random().nextInt(STRING_CHARS.length())));
 		}
 		return builder.toString();
 	}

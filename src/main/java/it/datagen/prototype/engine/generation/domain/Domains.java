@@ -21,7 +21,7 @@ public final class Domains {
 			return new StringDomain(1, 32);
 		}
 		if (type == Integer.class) {
-			return new IntDomain(0, 10_000);
+			return new IntDomain(0, 1_000_000);
 		}
 		if (type == Long.class) {
 			return new LongDomain(0L, 1_000_000L);
